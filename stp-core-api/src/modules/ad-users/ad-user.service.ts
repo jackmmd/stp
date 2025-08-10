@@ -10,35 +10,36 @@ import ActivedDirectory from 'activedirectory2'
 import prisma from "../../config/prisma";
 import { Prisma } from "@prisma/client";
 import ldap from 'ldapjs';
-import { parseDateDDMMYYYY, toTitleCase } from "../../others/functions/functions-generics";
+import { ldapDateToJS, parseDateDDMMYYYY, toTitleCase } from "../../others/functions/functions-generics";
 import { SearchAdUserDto } from "./dto/search-ad-user.dto";
+import { UpdateAdUser } from "./dto/update-ad-user.dto";
 const googleSheetService = new GoogleSheetService()
-// const ad = new ActivedDirectory({
-//       url: 'ldap://192.168.100.20',
-//       baseDN: 'dc=wortika,dc=com',
-//       username: 'Administrator@wortika.com',
-//       password: ']jackmmd2004'
-// })
+const client = ldap.createClient({
+  url: enviroment.adUrl,
+  timeout: 5000,
+  connectTimeout: 10000,
+});
+
 const ad = new ActivedDirectory({
-      url: enviroment.adUrl,
-      baseDN: enviroment.adBaseDn,
-      username: enviroment.adUserName,
-      password: enviroment.adPassword
+  url: enviroment.adUrl,
+  baseDN: enviroment.adBaseDn,
+  username: enviroment.adUserName,
+  password: enviroment.adPassword
 })
 export class AdUserService {
-  async list(params:SearchAdUserDto): Promise<ResponseListDto<ListAdUser>> {
+  async list(params: SearchAdUserDto): Promise<ResponseListDto<ListAdUser>> {
     const response = new ResponseListDto<ListAdUser>()
     const { username } = params
     var query = username ? `(sAMAccountName=${username})` : "";
     return new Promise((resolve, reject) => {
-      ad.findUsers(query,(error, users: any[]) => {
-        if (error)  {
+      ad.findUsers(query, (error, users: any[]) => {
+        if (error) {
           console.log(error)
           return reject(ResponseMessageDto.badRequest("Error list AD users"))
         }
         if (users) {
           response.total_count = users.length
-          response.items = users.map((user: ListAdUser) => {
+          response.items = users.map((user: any) => {
             return {
               cn: user.cn,
               description: user.description,
@@ -52,9 +53,13 @@ export class AdUserService {
               sn: user.sn,
               userAccountControl: user.userAccountControl,
               userPrincipalName: user.userPrincipalName,
-              whenCreated: user.whenCreated
+              whenCreated: ldapDateToJS(user.whenCreated)
             }
           })
+          response.items = response.items.sort(
+            (a, b) => b.whenCreated.getTime() - a.whenCreated.getTime()
+          );
+
           resolve(response)
         }
       })
@@ -71,7 +76,7 @@ export class AdUserService {
           registration_date: user[2],
           registration_time: user[3],
           name: toTitleCase(user[4]),
-          lastname:toTitleCase(user[5]),
+          lastname: toTitleCase(user[5]),
           dni: user[6],
           contract_start_date: user[7],
           contract_end_date: user[8],
@@ -98,116 +103,101 @@ export class AdUserService {
     }
     return response
   }
-  async createSheets():Promise<ResponseMessageDto>{
+  async createSheets(): Promise<ResponseMessageDto> {
     const response = new ResponseMessageDto()
-    const {items} = await this.listSheets()
-    const client = ldap.createClient({
-    url: enviroment.adUrl
-    });
-    await new Promise((resolve, reject) => {
-      client.bind(enviroment.adDn, enviroment.adPassword, (err) => {
-        if (err) {
-          response.message = String(err)
-          response.success = false
-          response.status_code = 400
-          return reject(response)
-        };
-        resolve(response);
-        });
-    }).catch((res:ResponseMessageDto)=>{
-      return res
-    });
-
-    return new Promise((resolve,reject)=>{
+    const { items } = await this.listSheets()
+    const responseConnect = await this.connectAd()
+    if (!responseConnect.success) return responseConnect 
+    return new Promise((resolve, reject) => {
       for (let index = 0; index < items.length; index++) {
         const sheetUser = items[index];
-        if(sheetUser){
+        if (sheetUser) {
           const userName = sheetUser.email.split('@')
-          ad.findUser(userName[0],async(error,user)=>{
-            const adUserLogData:Prisma.ad_user_logCreateInput = {
-              ticket:sheetUser.ticket,
-              request_date:parseDateDDMMYYYY(sheetUser.request_date),
-              name:sheetUser.name,
-              lastname:sheetUser.lastname,
-              dni:sheetUser.dni,
-              contract_start_date:parseDateDDMMYYYY(sheetUser.contract_start_date),
-              contract_end_date:parseDateDDMMYYYY(sheetUser.contract_end_date),
-              display_name:sheetUser.display_name,
-              email:sheetUser.email,
-              password:sheetUser.password,
-              audit_created_user:{connect:{id:1}},
-              company:sheetUser.company,
-              work_group_or_mailing_list:sheetUser.work_group_or_mailing_list,
-              work_group_or_mailing_list2:sheetUser.work_group_or_mailing_list2,
-              work_group_or_mailing_list3:sheetUser.work_group_or_mailing_list3,
-              address:sheetUser.address,
-              employee_id:sheetUser.employee_id,
-              management_division:sheetUser.management_division,
-              observation:sheetUser.observation,
-              personal_email:sheetUser.personal_email,
-              phone_number:sheetUser.phone_number,
-              position:sheetUser.position,
-              workplace:sheetUser.workplace,
-              cost_center:sheetUser.cost_center,
-              licensed_user:sheetUser.licensed_user==='1',
-              ad_user:sheetUser.ad_user==='1'
+          ad.findUser(userName[0], async (error, user) => {
+            const adUserLogData: Prisma.ad_user_logCreateInput = {
+              ticket: sheetUser.ticket,
+              request_date: parseDateDDMMYYYY(sheetUser.request_date),
+              name: sheetUser.name,
+              lastname: sheetUser.lastname,
+              dni: sheetUser.dni,
+              contract_start_date: parseDateDDMMYYYY(sheetUser.contract_start_date),
+              contract_end_date: parseDateDDMMYYYY(sheetUser.contract_end_date),
+              display_name: sheetUser.display_name,
+              email: sheetUser.email,
+              password: sheetUser.password,
+              audit_created_user: { connect: { id: 1 } },
+              company: sheetUser.company,
+              work_group_or_mailing_list: sheetUser.work_group_or_mailing_list,
+              work_group_or_mailing_list2: sheetUser.work_group_or_mailing_list2,
+              work_group_or_mailing_list3: sheetUser.work_group_or_mailing_list3,
+              address: sheetUser.address,
+              employee_id: sheetUser.employee_id,
+              management_division: sheetUser.management_division,
+              observation: sheetUser.observation,
+              personal_email: sheetUser.personal_email,
+              phone_number: sheetUser.phone_number,
+              position: sheetUser.position,
+              workplace: sheetUser.workplace,
+              cost_center: sheetUser.cost_center,
+              licensed_user: sheetUser.licensed_user === '1',
+              ad_user: sheetUser.ad_user === '1'
             }
-            if(error){
+            if (error) {
               adUserLogData.message = String(error)
               adUserLogData.status = 0
             }
-            if(user){
+            if (user) {
               adUserLogData.message = "El usuario ya está registrado"
               adUserLogData.status = 0
-            }else{
-                const newUserDN = `CN=${sheetUser.name},OU=Empleados,OU=Usuarios,DC=${enviroment.adDc1},DC=${enviroment.adDc2}`;
-                const newUser = {
-                  cn: sheetUser.name, // Common Name (Nombre)
-                  sn: sheetUser.lastname, // Surname (Apellido)
-                  givenName: sheetUser.name, // Nombre de pila
-                  displayName: sheetUser.display_name, // Nombre mostrado
-                  name: `${sheetUser.name} ${sheetUser.lastname}`, // Nombre completo
-                  department: sheetUser.management_division || "", // División/Gerencia
-                  title: sheetUser.position || undefined, // Puesto
-                  company: sheetUser.company || undefined, // Empresa
-                  physicalDeliveryOfficeName: "STP", // Oficina/Lugar de trabajo
-                  telephoneNumber: sheetUser.phone_number || undefined, // Teléfono corporativo
-                  mobile: sheetUser.phone_number || undefined, // Celular
-                  mail: sheetUser.email, // Correo electrónico
-                  userPrincipalName: sheetUser.email, // Nombre principal del usuario (login)
-                  sAMAccountName: sheetUser.email.split("@")[0], // Usuario de AD
-                  streetAddress: sheetUser.employee_id || undefined, // Dirección física
-                  postalCode:"", // Código postal (si existe)
-                  c: "PE", // País
-                  l: "", // Ciudad
-                  st: "", // Estado o región
-                  postOfficeBox:"Empleado",
-                  facsimileTelephoneNumber:sheetUser.cost_center || "",
-                  objectClass: ['top', 'person', 'organizationalPerson', 'user']
-                };
-                if(sheetUser.dni){
-                  newUser.postalCode = `D${sheetUser.dni}`
-                }
-                if(sheetUser.workplace){
-                  newUser.l = sheetUser.workplace
-                }
-                if(sheetUser.company){
-                  newUser.st=sheetUser.company
-                }
-                await new Promise((resolve, reject) => {
-                  client.add(newUserDN, newUser, (err) => {
-                    if (err) {
-                      adUserLogData.message = String(err)
-                      adUserLogData.status = 0
-                      return reject(err)
-                    };
-                    resolve(true);
-                  });
+            } else {
+              const newUserDN = `CN=${sheetUser.name},OU=Empleados,OU=Usuarios,DC=${enviroment.adDc1},DC=${enviroment.adDc2}`;
+              const newUser = {
+                cn: sheetUser.name, // Common Name (Nombre)
+                sn: sheetUser.lastname, // Surname (Apellido)
+                givenName: sheetUser.name, // Nombre de pila
+                displayName: sheetUser.display_name, // Nombre mostrado
+                name: `${sheetUser.name} ${sheetUser.lastname}`, // Nombre completo
+                department: sheetUser.management_division || "", // División/Gerencia
+                title: sheetUser.position || undefined, // Puesto
+                company: sheetUser.company || undefined, // Empresa
+                physicalDeliveryOfficeName: "STP", // Oficina/Lugar de trabajo
+                telephoneNumber: sheetUser.phone_number || undefined, // Teléfono corporativo
+                mobile: sheetUser.phone_number || undefined, // Celular
+                mail: sheetUser.email, // Correo electrónico
+                userPrincipalName: sheetUser.email, // Nombre principal del usuario (login)
+                sAMAccountName: sheetUser.email.split("@")[0], // Usuario de AD
+                streetAddress: sheetUser.employee_id || undefined, // Dirección física
+                postalCode: "", // Código postal (si existe)
+                c: "PE", // País
+                l: "", // Ciudad
+                st: "", // Estado o región
+                postOfficeBox: "Empleado",
+                facsimileTelephoneNumber: sheetUser.cost_center || "",
+                objectClass: ['top', 'person', 'organizationalPerson', 'user']
+              };
+              if (sheetUser.dni) {
+                newUser.postalCode = `D${sheetUser.dni}`
+              }
+              if (sheetUser.workplace) {
+                newUser.l = sheetUser.workplace
+              }
+              if (sheetUser.company) {
+                newUser.st = sheetUser.company
+              }
+              await new Promise((resolve, reject) => {
+                client.add(newUserDN, newUser, (err) => {
+                  if (err) {
+                    adUserLogData.message = String(err)
+                    adUserLogData.status = 0
+                    return reject(err)
+                  };
+                  resolve(true);
                 });
+              });
               adUserLogData.message = "Usuario registrado con exito"
               adUserLogData.status = 1
             }
-            await prisma.ad_user_log.create({data:adUserLogData})
+            await prisma.ad_user_log.create({ data: adUserLogData })
           })
         }
       }
@@ -300,4 +290,29 @@ export class AdUserService {
     }
     return response
   }
+  async connectAd(): Promise<ResponseMessageDto> {
+    const response = new ResponseMessageDto();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        client.bind(enviroment.adDn, enviroment.adPassword, (err) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+
+      response.message = "Conexión exitosa a AD";
+      response.success = true;
+      response.status_code = 200;
+      return response;
+
+    } catch (error) {
+      response.message = String(error);
+      response.success = false;
+      response.status_code = 400;
+      return response;
+    }
+  }
+  
 }

@@ -4,7 +4,7 @@ export interface ListAdUser {
   userPrincipalName: string;
   sAMAccountName: string;
   mail: string;
-  whenCreated: string;
+  whenCreated: Date ;
   pwdLastSet: string; 
   userAccountControl: string;
   sn: string;         

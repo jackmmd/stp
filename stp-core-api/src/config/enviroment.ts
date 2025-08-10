@@ -2,6 +2,7 @@ import {config} from 'dotenv'
 config()
 export const enviroment = {
   apiPort:process.env.API_PORT || 3000,
+  apiPort2:process.env.API_PORT_2 || 4000,
   apiUrl:process.env.API_URL || "http://localhost:3000",
   clientUrl:process.env.CLIENT_URL || "http://localhost:5173",
   googleServiceAccountJson:process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "{}",
