@@ -3,10 +3,12 @@ import { api } from "@/services/api.service";
 import type { ListAdUserDto } from "../dto/list-ad-user.dto";
 import type { ResponseMessageDto } from "@/others/dto/response.message.dto";
 import type { ListAdSheetsUsersDto } from "../dto/list-ad-user-sheets.dto";
+import type { SearchAdUserDto } from "../dto/search-ad-user.dto";
 
 export class AdUserService {
-  async list() {
-    const { data } = await api.post<ResponseListDto<ListAdUserDto>>('/ad-users/list')
+  async list(params:SearchAdUserDto) {
+    const body = {username:params.username}
+    const { data } = await api.post<ResponseListDto<ListAdUserDto>>('/ad-users/list',body)
     return data
   }
   async listSheets(){
