@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model role {
+  id Int @id @default(autoincrement()) @unique
+  name String @unique @db.VarChar(20)
+  users user[]
+}
+enum login_type {
+  GOOGLE
+  LOCAL
+}
+model user {
+  id Int @id @default(autoincrement()) @unique
+  username String
+  password String
+  email String
+  avatar String?
+  reset_sesion Boolean? @default(false)
+  role role @relation(fields: [role_id], references: [id])
+  role_id Int
+  status Int @default(1)
+  last_access DateTime?
+  last_change_password DateTime?
+  login_type login_type @default(LOCAL)
+  email_verified Boolean @default(false)
+  ip_address String?
+  ip_address_last_access String?
+  user_agent String? @db.Text
+  user_agent_last_access String? @db.Text
+  language String? 
+  ad_user_logs ad_user_log[]
+}
+
+model ad_user_log {
+  id Int @id @default(autoincrement()) @unique
+  ticket String
+  request_date DateTime
+  name String
+  lastname String
+  dni String?
+  contract_start_date DateTime
+  contract_end_date DateTime 
+  company String?
+  display_name String
+  email String
+  password String
+  workplace String?
+  work_group_or_mailing_list String?
+  work_group_or_mailing_list2 String?
+  work_group_or_mailing_list3 String?
+  cost_center String?
+  position String?
+  management_division String?
+  phone_number String?
+  personal_email String?
+  address String?
+  employee_id String?
+  ad_user Boolean @default(false)
+  licensed_user Boolean @default(false)
+  observation String? @db.Text 
+  status Int @default(1)
+  message String @default("Registrado exitosamente")
+  audit_created_user user @relation(fields: [audit_created_user_id], references: [id], onDelete: Cascade)
+  audit_created_user_id Int
+  audit_created_date DateTime @default(now())
+  audit_updated_user_id Int?
+  audit_updated_date DateTime?
+  audit_deleted_user_id Int?
+  audit_deleted_date DateTime?
+}

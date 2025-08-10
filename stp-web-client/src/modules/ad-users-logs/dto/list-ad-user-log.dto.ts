@@ -1,0 +1,36 @@
+export interface ListAdUserLogDto {
+  id: number
+  ticket: string
+  request_date: string
+  name: string
+  lastname: string
+  dni: string
+  contract_start_date: string
+  contract_end_date: string
+  company: any
+  display_name: string
+  email: string
+  password: string
+  workplace: any
+  work_group_or_mailing_list: any
+  work_group_or_mailing_list2: any
+  work_group_or_mailing_list3: any
+  cost_center: any
+  position: any
+  management_division: any
+  phone_number: any
+  personal_email: any
+  address: any
+  employee_id: any
+  ad_user: boolean
+  licensed_user: boolean
+  observation: any
+  status: number
+  message: string
+  audit_created_user_id: number
+  audit_created_date: string
+  audit_updated_user_id: any
+  audit_updated_date: any
+  audit_deleted_user_id: any
+  audit_deleted_date: any
+}

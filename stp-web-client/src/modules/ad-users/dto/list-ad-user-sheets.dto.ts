@@ -1,0 +1,29 @@
+export interface ListAdSheetsUsersDto {
+    ticket: string;
+    request_date: string;
+    registration_date: string;
+    registration_time: string;
+    name: string;
+    lastname: string;
+    dni: string;
+    contract_start_date: string;
+    contract_end_date: string;
+    company: string;
+    display_name: string;
+    email: string;
+    password: string;
+    workplace: string;
+    work_group_or_mailing_list: string;
+    work_group_or_mailing_list2: string;
+    work_group_or_mailing_list3: string;
+    cost_center: string;
+    position: string;
+    management_division: string;
+    phone_number: string;
+    personal_email: string;
+    address: string;
+    employee_id: string;
+    ad_user: string;
+    licensed_user: string;
+    observation: string;
+}
