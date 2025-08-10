@@ -5,8 +5,11 @@ import { ResponseListDto } from "../../others/dto/response.list.dto";
 const adUserService = new AdUserService()
 export class AdUserController {
   async list(req: Request, res: Response){
+    const { username } = req.body
     try {
-      const response = await adUserService.list()
+      const response = await adUserService.list({
+        username
+      })
       res.status(response.status_code).json(response)
     } catch (error) {
       const response = ResponseMessageDto.internalServerError()

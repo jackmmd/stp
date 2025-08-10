@@ -11,6 +11,7 @@ import prisma from "../../config/prisma";
 import { Prisma } from "@prisma/client";
 import ldap from 'ldapjs';
 import { parseDateDDMMYYYY, toTitleCase } from "../../others/functions/functions-generics";
+import { SearchAdUserDto } from "./dto/search-ad-user.dto";
 const googleSheetService = new GoogleSheetService()
 // const ad = new ActivedDirectory({
 //       url: 'ldap://192.168.100.20',
@@ -25,11 +26,16 @@ const ad = new ActivedDirectory({
       password: enviroment.adPassword
 })
 export class AdUserService {
-  async list(): Promise<ResponseListDto<ListAdUser>> {
+  async list(params:SearchAdUserDto): Promise<ResponseListDto<ListAdUser>> {
     const response = new ResponseListDto<ListAdUser>()
+    const { username } = params
+    var query = username ? `(sAMAccountName=${username})` : "";
     return new Promise((resolve, reject) => {
-      ad.findUsers((error, users: any[]) => {
-        if (error) return reject(ResponseMessageDto.badRequest("Error list AD users"))
+      ad.findUsers(query,(error, users: any[]) => {
+        if (error)  {
+          console.log(error)
+          return reject(ResponseMessageDto.badRequest("Error list AD users"))
+        }
         if (users) {
           response.total_count = users.length
           response.items = users.map((user: ListAdUser) => {
