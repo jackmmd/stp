@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
-  Command,
   GalleryVerticalEnd,
   SquareTerminal,
 } from "lucide-react"
@@ -22,9 +20,9 @@ import {
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Duberly Mondragón",
+    email: "duberly.mondragon@canvia.com",
+    avatar: "https://avatars.githubusercontent.com/u/108305203?v=4",
   },
   teams: [
     {

@@ -7,8 +7,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { EllipsisVertical } from "lucide-react"
-
-export function MenuDropdownBase() {
+interface MenuDropdownBaseItem {
+  onClick:()=>void
+  title:string
+  disabled?:boolean
+}
+interface Props {
+  items:MenuDropdownBaseItem[]
+}
+export function MenuDropdownBase({items}:Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -16,7 +23,9 @@ export function MenuDropdownBase() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-        <DropdownMenuItem disabled>Dar de baja</DropdownMenuItem>
+        {items.map(item=>(
+          <DropdownMenuItem className="cursor-pointer" onClick={item.onClick} disabled={item.disabled}>{item.title}</DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

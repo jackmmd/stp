@@ -4,6 +4,7 @@ import type { ListAdUserDto } from "../dto/list-ad-user.dto";
 import type { ResponseMessageDto } from "@/others/dto/response.message.dto";
 import type { ListAdSheetsUsersDto } from "../dto/list-ad-user-sheets.dto";
 import type { SearchAdUserDto } from "../dto/search-ad-user.dto";
+import type { UpdateAdUser } from "../dto/update-ad-user.dto";
 
 export class AdUserService {
   async list(params:SearchAdUserDto) {
@@ -17,6 +18,10 @@ export class AdUserService {
   }
   async createSheets(){
     const { data } = await api.post<ResponseMessageDto>('/ad-users/create-sheets')
+    return data
+  }
+  async update(params:UpdateAdUser) {
+    const { data } = await api.patch('/ad-users/update',params)
     return data
   }
 }

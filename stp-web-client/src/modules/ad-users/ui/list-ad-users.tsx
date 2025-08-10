@@ -13,12 +13,12 @@ export default function ListAdUsers() {
   const [pnum, setPnum] = useState(1)
   const [size, setSize] = useState(20)
   const [search,setSearch] = useState<Search>({})
-
-  const { isLoading, isError, data } = useQuery({
+  const queryKey = 'list-ad-users'
+  const { isLoading, data } = useQuery({
     queryFn: ()=>adUserService.list({
       ...search
     }),
-    queryKey: ['list-ad-users',search],
+    queryKey: [queryKey,search],
     refetchOnWindowFocus:false
   })
   return (
