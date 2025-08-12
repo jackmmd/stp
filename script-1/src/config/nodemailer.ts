@@ -38,6 +38,7 @@ export class Nodemailer {
       };
 
       await transporter.sendMail(mailOptions);
+      
       response.success = true;
       return response;
     } catch (error) {

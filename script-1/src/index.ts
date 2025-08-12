@@ -41,10 +41,11 @@ async function main() {
         const nameSplit = name.split(" ")[0];
           if (nameSplit && email ) {
             await new Promise(resolve => setTimeout(resolve, 1000));
+            const subject = "Meet & Greet STRACON Group - Perumin 2025"
             const nodeMailer = new Nodemailer({
-              subject: "Meet & Greet STRACON Group - Perumin 2025",
+              subject,
               to: email,
-              html: getTemplate({ name }),
+              html: getTemplate({ name,email:globalConstants.mailUsername,subject }),
             });
             const sendEmail = await nodeMailer.send()
             if(!sendEmail.success){

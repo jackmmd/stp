@@ -6,6 +6,7 @@ export class ResponseMessageDto {
     success: boolean = true,
     message: string = "Todo salió correctamente",
     status_code: number = 200,
+    data: string = ""
   ) {
     this.success = success;
     this.message = message;

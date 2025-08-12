@@ -1,7 +1,9 @@
 interface Props {
     name:string
+    email:string
+    subject:string
 }
-export const getTemplate=({name}:Props)=>`
+export const getTemplate=({name,email,subject}:Props)=>`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +17,9 @@ export const getTemplate=({name}:Props)=>`
       clientes y partners estratégicos, del cual nos encantaría que seas parte. <br>Te esperamos para compartir
       juntos de una tarde especial. <br> <br> <strong>Agradeceremos nos confirmes tu participación.</strong> <br><b>STRACON Group</b></i></p>
   <div style="text-align:center;">
+  <a href="mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("Confirmo mi asistencia")}">
     <img height="600px" style="display:block;margin:0 auto;" src="https://raw.githubusercontent.com/jackmmd/stp-public-images/refs/heads/main/meet-greet.png" />
+  </a>
   </div>
 </body>
 </html>
