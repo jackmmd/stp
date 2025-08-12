@@ -42,17 +42,17 @@ async function main() {
           if (nameSplit && email ) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             const nodeMailer = new Nodemailer({
-              subject: "Asunto del correo",
+              subject: "Meet & Greet STRACON Group - Perumin 2025",
               to: email,
               html: getTemplate({ name }),
             });
             const sendEmail = await nodeMailer.send()
             if(!sendEmail.success){
-              response.message = `{ "name": ${name}, "email":${email}, "message": "Error al enviar correo"}`
+              response.message = `{"name": "${name}", "email":"${email}", "message": "Error al enviar correo"}`
               response.success = false
               response.status_code = 400
             }else{
-              response.message = `{ "name": ${name}, "email":${email}, "message": "Correo enviado exitosamente"}`
+              response.message = `{"name": "${name}", "email":"${email}", "message": "Correo enviado exitosamente"}`
             }
             console.log(response)
           }        
