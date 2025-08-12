@@ -1,0 +1,22 @@
+{
+  "name": "script-1",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && node --env-file .env dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/nodemailer": "^6.4.17",
+    "tslint": "^5.20.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "googleapis": "^155.0.1",
+    "nodemailer": "^7.0.5"
+  }
+}
